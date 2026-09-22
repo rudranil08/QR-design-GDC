@@ -2,180 +2,259 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Design tokens
+  ─────────────
+  Accent: #1a6ef7 (a clean, confident blue — not indigo/purple)
+  Base:   neutral zinc scale
+  Radius: inputs 6px, buttons 8px, panels 10px, large containers 12px
+  Shadow: never colored, never large — only 1px border + subtle shadow
+*/
+
 @layer base {
   :root {
-    --accent: 99 102 241;
-    --accent-fg: 255 255 255;
+    --accent:    26 110 247;   /* #1a6ef7 — single brand blue */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
   }
 
   * { box-sizing: border-box; }
 
-  html { -webkit-font-smoothing: antialiased; }
-
-  body {
-    @apply bg-[#F5F5F7] text-[#1D1D1F] dark:bg-[#0A0A0F] dark:text-[#F2F2F7];
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Selections */
-  ::selection { background: rgb(var(--accent) / 0.15); }
+  body {
+    @apply bg-zinc-100 text-zinc-900 dark:bg-[#0d0d0d] dark:text-zinc-100;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
 
-  /* Range inputs */
+  ::selection {
+    background: rgb(var(--accent) / 0.12);
+  }
+
+  /* ── Range sliders ── */
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
-    height: 4px;
+    height: 3px;
     @apply w-full rounded-full bg-zinc-200 dark:bg-zinc-700 cursor-pointer outline-none;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    @apply w-4 h-4 rounded-full bg-indigo-500 shadow-md cursor-pointer;
-    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.2);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    @apply bg-zinc-800 dark:bg-zinc-200 cursor-pointer;
+    /* No glow ring — just the thumb */
   }
   input[type="range"]::-moz-range-thumb {
-    @apply w-4 h-4 rounded-full bg-indigo-500 border-0 cursor-pointer;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: none;
+    @apply bg-zinc-800 dark:bg-zinc-200 cursor-pointer;
   }
 
-  /* Color inputs */
+  /* ── Color picker ── */
   input[type="color"] {
-    @apply rounded-lg border-0 cursor-pointer p-0.5 bg-transparent;
-    width: 36px; height: 36px;
+    cursor: pointer;
+    border: none;
+    padding: 2px;
+    background: transparent;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
   }
+
+  /* ── Select ── */
+  select {
+    @apply appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' stroke='%2371717a' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px !important;
+  }
+
+  canvas { image-rendering: pixelated; }
 }
 
 @layer components {
-  /* ── Sidebar shell ── */
-  .sidebar {
-    @apply flex flex-col h-full overflow-hidden;
-    @apply bg-white dark:bg-[#111116];
-    @apply border-r border-zinc-200/80 dark:border-white/[0.06];
+
+  /* ─────────────────────────────────────────────
+     INPUTS
+     ───────────────────────────────────────────── */
+  .field-input {
+    @apply w-full px-3 py-2 text-sm
+           bg-white dark:bg-zinc-900
+           border border-zinc-200 dark:border-zinc-700
+           text-zinc-900 dark:text-zinc-100
+           placeholder:text-zinc-400 dark:placeholder:text-zinc-600
+           transition-colors duration-100
+           outline-none
+           focus:border-zinc-400 dark:focus:border-zinc-500;
+    border-radius: var(--radius-sm);
+  }
+  .field-input:focus {
+    box-shadow: none;
+  }
+  .field-input-error {
+    @apply border-red-400 dark:border-red-600;
   }
 
-  /* ── Section header ── */
+  /* ─────────────────────────────────────────────
+     BUTTONS
+     ───────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5
+           text-sm font-medium
+           transition-colors duration-100
+           select-none cursor-pointer
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    border-radius: var(--radius-md);
+  }
+
+  /* Primary: solid black in light / white in dark */
+  .btn-primary {
+    @apply btn px-4 py-2
+           bg-zinc-900 hover:bg-zinc-700 active:bg-zinc-800
+           dark:bg-zinc-100 dark:hover:bg-white dark:active:bg-zinc-200
+           text-white dark:text-zinc-900;
+  }
+
+  /* Secondary: outlined */
+  .btn-secondary {
+    @apply btn px-4 py-2
+           bg-white dark:bg-zinc-900
+           border border-zinc-200 dark:border-zinc-700
+           hover:bg-zinc-50 dark:hover:bg-zinc-800
+           text-zinc-700 dark:text-zinc-300;
+  }
+
+  /* Ghost: no border */
+  .btn-ghost {
+    @apply btn px-2.5 py-1.5
+           text-zinc-500 dark:text-zinc-400
+           hover:text-zinc-800 dark:hover:text-zinc-200
+           hover:bg-zinc-100 dark:hover:bg-zinc-800;
+  }
+
+  /* Icon button */
+  .btn-icon {
+    @apply btn p-1.5
+           text-zinc-500 dark:text-zinc-400
+           hover:text-zinc-800 dark:hover:text-zinc-200
+           hover:bg-zinc-100 dark:hover:bg-zinc-800;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Accent (used sparingly: only primary download CTA) */
+  .btn-accent {
+    @apply btn px-4 py-2
+           text-white;
+    background: rgb(var(--accent));
+    border-radius: var(--radius-md);
+  }
+  .btn-accent:hover {
+    background: rgb(var(--accent) / 0.88);
+  }
+
+  /* ─────────────────────────────────────────────
+     SECTION LABEL
+     ───────────────────────────────────────────── */
   .section-label {
-    @apply text-[10px] font-semibold tracking-[0.08em] uppercase
+    @apply text-[11px] font-medium tracking-[0.06em] uppercase
            text-zinc-400 dark:text-zinc-500;
   }
 
-  /* ── Inputs ── */
-  .field-input {
-    @apply w-full rounded-xl px-3.5 py-2.5 text-sm
-           bg-zinc-50 dark:bg-white/[0.04]
-           border border-zinc-200 dark:border-white/[0.08]
-           text-zinc-900 dark:text-zinc-100
-           placeholder:text-zinc-400 dark:placeholder:text-zinc-600
-           transition-all duration-150
-           focus:outline-none focus:border-indigo-500/60 dark:focus:border-indigo-400/50
-           focus:ring-2 focus:ring-indigo-500/10 dark:focus:ring-indigo-400/10;
+  /* ─────────────────────────────────────────────
+     TAB GROUP (segment control)
+     ───────────────────────────────────────────── */
+  .tab-group {
+    @apply flex border-b border-zinc-100 dark:border-zinc-800;
   }
-  .field-input-error {
-    @apply border-rose-400/60 focus:border-rose-400/80 focus:ring-rose-400/10;
+  .tab-item {
+    @apply pb-2.5 px-0 mr-5 text-[13px] font-medium
+           border-b-2 border-transparent -mb-px
+           text-zinc-400 dark:text-zinc-600
+           hover:text-zinc-700 dark:hover:text-zinc-300
+           transition-colors duration-100 cursor-pointer;
   }
-
-  /* ── Buttons ── */
-  .btn {
-    @apply inline-flex items-center justify-center gap-1.5
-           rounded-xl text-sm font-medium
-           transition-all duration-150 select-none
-           disabled:opacity-40 disabled:cursor-not-allowed;
-  }
-  .btn-primary {
-    @apply btn px-4 py-2.5
-           bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700
-           text-white shadow-sm shadow-indigo-600/20
-           dark:shadow-indigo-500/20;
-  }
-  .btn-secondary {
-    @apply btn px-4 py-2.5
-           bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-200
-           dark:bg-white/[0.06] dark:hover:bg-white/[0.1] dark:active:bg-white/[0.08]
-           text-zinc-700 dark:text-zinc-200;
-  }
-  .btn-ghost {
-    @apply btn px-3 py-1.5
-           text-zinc-500 dark:text-zinc-400
-           hover:text-zinc-800 dark:hover:text-zinc-200
-           hover:bg-zinc-100 dark:hover:bg-white/[0.06];
-  }
-  .btn-icon {
-    @apply btn p-2 rounded-lg
-           text-zinc-500 dark:text-zinc-400
-           hover:text-zinc-800 dark:hover:text-zinc-200
-           hover:bg-zinc-100 dark:hover:bg-white/[0.06];
+  .tab-item-active {
+    @apply text-zinc-900 dark:text-zinc-100
+           border-b-2 border-zinc-900 dark:border-zinc-100;
   }
 
-  /* ── Tab pill ── */
-  .tab-pill {
-    @apply flex-1 py-1.5 rounded-lg text-[11px] font-semibold
-           transition-all duration-150 cursor-pointer;
+  /* ─────────────────────────────────────────────
+     TOGGLE SWITCH
+     ───────────────────────────────────────────── */
+  .toggle {
+    @apply relative inline-flex items-center cursor-pointer;
+    width: 32px;
+    height: 18px;
   }
-
-  /* ── Pill group ── */
-  .pill-group {
-    @apply flex p-0.5 rounded-xl
-           bg-zinc-100/80 dark:bg-white/[0.04]
-           border border-zinc-200/50 dark:border-white/[0.05];
+  .toggle-track {
+    @apply w-full h-full rounded-full transition-colors duration-150
+           bg-zinc-200 dark:bg-zinc-700;
   }
-
-  /* ── QR Type button ── */
-  .type-btn {
-    @apply flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm
-           transition-all duration-150 text-left cursor-pointer;
+  .toggle-track-on {
+    background: rgb(var(--accent)) !important;
+  }
+  .toggle-thumb {
+    @apply absolute left-0.5 top-0.5 w-3.5 h-3.5 rounded-full bg-white
+           shadow-sm transition-transform duration-150;
+  }
+  .toggle-thumb-on {
+    transform: translateX(14px);
   }
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-300 dark:bg-zinc-700 rounded-full;
+  @apply bg-zinc-200 dark:bg-zinc-700 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-300 dark:bg-zinc-600;
 }
 
-/* ── Checkerboard ── */
+/* ── Checkerboard (transparent QR bg indicator) ── */
 .checkerboard {
   background-image:
-    linear-gradient(45deg, #d1d5db 25%, transparent 25%),
-    linear-gradient(-45deg, #d1d5db 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #d1d5db 75%),
-    linear-gradient(-45deg, transparent 75%, #d1d5db 75%);
+    linear-gradient(45deg, #d4d4d8 25%, transparent 25%),
+    linear-gradient(-45deg, #d4d4d8 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #d4d4d8 75%),
+    linear-gradient(-45deg, transparent 75%, #d4d4d8 75%);
   background-size: 8px 8px;
   background-position: 0 0, 0 4px, 4px -4px, -4px 0;
 }
 .dark .checkerboard {
   background-image:
-    linear-gradient(45deg, #27272a 25%, transparent 25%),
-    linear-gradient(-45deg, #27272a 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #27272a 75%),
-    linear-gradient(-45deg, transparent 75%, #27272a 75%);
+    linear-gradient(45deg, #3f3f46 25%, transparent 25%),
+    linear-gradient(-45deg, #3f3f46 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3f3f46 75%),
+    linear-gradient(-45deg, transparent 75%, #3f3f46 75%);
 }
 
-/* ── Animations ── */
+/* ── State transitions: only communicate, never decorate ── */
 .fade-up {
-  animation: fadeUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeUp 0.15s ease-out both;
 }
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.scale-in {
-  animation: scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+/* sidebar slide — communicates navigation */
+.sidebar-enter {
+  animation: sidebarIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-/* ── QR canvas rendering ── */
-canvas { image-rendering: pixelated; }
-
-/* ── Noise texture overlay (for depth) ── */
-.noise::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  border-radius: inherit;
-  z-index: 0;
+@keyframes sidebarIn {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
 }

@@ -129,16 +129,16 @@ export function WiFiForm({ values, errors, onChange }: { values: WiFiFormValues;
       )}
 
       <label className="flex items-center gap-2.5 py-1 cursor-pointer group">
-        <div
+        <button
+          type="button"
+          role="switch"
+          aria-checked={values.hidden}
           onClick={() => u('hidden', !values.hidden)}
-          className={`w-8 h-4.5 h-[18px] rounded-full transition-colors duration-200 flex items-center px-0.5 cursor-pointer ${
-            values.hidden ? 'bg-indigo-500' : 'bg-zinc-200 dark:bg-zinc-700'
-          }`}
+          className="toggle"
         >
-          <div className={`w-3.5 h-3.5 rounded-full bg-white shadow transition-transform duration-200 ${
-            values.hidden ? 'translate-x-[14px]' : 'translate-x-0'
-          }`} />
-        </div>
+          <div className={`toggle-track ${values.hidden ? 'toggle-track-on' : ''}`} />
+          <div className={`toggle-thumb ${values.hidden ? 'toggle-thumb-on' : ''}`} />
+        </button>
         <span className="text-sm text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 transition-colors">
           Hidden network
         </span>

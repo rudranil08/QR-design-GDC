@@ -5,15 +5,26 @@ interface Props { message: string }
 export function ScanWarning({ message }: Props) {
   return (
     <div className="
-      flex items-start gap-2.5 px-3.5 py-3 rounded-xl w-full
-      bg-amber-50/80 dark:bg-amber-500/[0.08]
-      border border-amber-200/60 dark:border-amber-500/20
-      fade-up
-    ">
-      <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M8.982 1.566a1.13 1.13 0 00-1.964 0L.165 13.233c-.457.778.091 1.767.982 1.767h13.706c.89 0 1.438-.99.982-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 01-1.1 0L7.1 5.995A.905.905 0 018 5zm.002 6a1 1 0 110 2 1 1 0 010-2z"/>
+      w-full flex items-start gap-2.5 px-3 py-2.5
+      bg-amber-50 dark:bg-amber-950/30
+      border border-amber-200 dark:border-amber-800/60
+      text-amber-800 dark:text-amber-300
+    " style={{ borderRadius: 6 }}>
+      {/* Warning icon — same stroke family as rest of icons */}
+      <svg
+        width="14" height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="flex-shrink-0 mt-0.5"
+      >
+        <path d="M7 1.5L13 12H1L7 1.5z"/>
+        <path d="M7 5.5v3M7 10.5v.01"/>
       </svg>
-      <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">{message}</p>
+      <p className="text-[12px] leading-relaxed">{message}</p>
     </div>
   )
 }

@@ -38,10 +38,11 @@ const DEFAULT_FORMS: Record<QRType, FormValues> = {
   wifi:  { type: 'wifi',  values: { ssid: '', password: '', encryption: 'WPA', hidden: false } },
 }
 
-const TABS = [
-  { id: 'customize' as const, label: 'Customize' },
-  { id: 'presets'   as const, label: 'Presets'   },
-  { id: 'recent'    as const, label: 'History'   },
+type PanelTab = 'customize' | 'presets' | 'history'
+const TABS: { id: PanelTab; label: string }[] = [
+  { id: 'customize', label: 'Customize' },
+  { id: 'presets',   label: 'Presets'   },
+  { id: 'history',   label: 'History'   },
 ]
 
 export default function App() {
@@ -51,11 +52,11 @@ export default function App() {
   const [qrType,      setQrType]      = useState<QRType>('url')
   const [formData,    setFormData]    = useState<FormValues>(DEFAULT_FORMS.url)
   const [options,     setOptions]     = useState<QROptions>(DEFAULT_QR_OPTIONS)
-  const [activePanel, setActivePanel] = useState<'customize' | 'presets' | 'recent'>('customize')
+  const [activePanel, setActivePanel] = useState<PanelTab>('customize')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const errors   = useMemo(() => validate(formData), [formData])
-  const isValid  = !hasErrors(errors)
+  const errors  = useMemo(() => validate(formData), [formData])
+  const isValid = !hasErrors(errors)
 
   const content = useMemo(() => {
     if (!isValid) return ''
@@ -72,7 +73,9 @@ export default function App() {
     setFormData(DEFAULT_FORMS[type])
   }, [])
 
-  const handleFormChange = useCallback((values: URLFormValues | TextFormValues | EmailFormValues | PhoneFormValues | WiFiFormValues) => {
+  const handleFormChange = useCallback((
+    values: URLFormValues | TextFormValues | EmailFormValues | PhoneFormValues | WiFiFormValues
+  ) => {
     setFormData(prev => ({ ...prev, values } as FormValues))
   }, [])
 
@@ -82,7 +85,7 @@ export default function App() {
       fgColor: preset.fgColor,
       bgColor: preset.bgColor,
       ecLevel: preset.ecLevel,
-      margin: preset.margin,
+      margin:  preset.margin,
       bgTransparent: false,
     }))
   }, [])
@@ -100,55 +103,56 @@ export default function App() {
     setSidebarOpen(false)
   }, [])
 
-  const formTitle = {
-    url: 'Website URL', text: 'Plain Text',
-    email: 'Email', phone: 'Phone Number', wifi: 'Wi-Fi Network',
-  }[qrType]
+  const FORM_TITLES: Record<QRType, string> = {
+    url:   'Website URL',
+    text:  'Plain text',
+    email: 'Email',
+    phone: 'Phone number',
+    wifi:  'Wi-Fi network',
+  }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#F5F5F7] dark:bg-[#0A0A0F]">
+    <div className="flex flex-col h-screen overflow-hidden bg-zinc-100 dark:bg-[#0d0d0d]">
 
-      {/* ── Top bar ─────────────────────────────────────────── */}
+      {/* ── Header ── */}
       <header className="
-        flex-shrink-0 h-12 flex items-center justify-between px-4 sm:px-5
-        bg-white/70 dark:bg-[#0A0A0F]/80 backdrop-blur-xl
-        border-b border-zinc-200/80 dark:border-white/[0.06]
+        flex-shrink-0 h-11 flex items-center justify-between px-4
+        bg-white dark:bg-[#141414]
+        border-b border-zinc-200 dark:border-zinc-800
         z-20
       ">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          {/* Mobile sidebar toggle */}
+        <div className="flex items-center gap-3">
+          {/* Mobile menu toggle */}
           <button
-            className="lg:hidden btn-icon mr-1"
+            className="lg:hidden btn-icon"
             onClick={() => setSidebarOpen(s => !s)}
+            aria-label="Toggle sidebar"
           >
-            <svg className="w-4.5 h-4.5 w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M2 4h12M2 8h12M2 12h12" strokeLinecap="round"/>
             </svg>
           </button>
 
-          <div className="
-            w-7 h-7 rounded-lg flex items-center justify-center
-            bg-indigo-600 dark:bg-indigo-500
-            shadow-lg shadow-indigo-600/30 dark:shadow-indigo-500/20
-          ">
-            <svg className="w-4 h-4 text-white" viewBox="0 0 16 16" fill="currentColor">
-              <rect x="1" y="1" width="5" height="5" rx="1"/>
-              <rect x="10" y="1" width="5" height="5" rx="1"/>
-              <rect x="1" y="10" width="5" height="5" rx="1"/>
-              <rect x="10" y="10" width="2" height="2"/>
-              <rect x="14" y="10" width="2" height="2"/>
-              <rect x="10" y="14" width="2" height="2"/>
-              <rect x="14" y="14" width="2" height="2"/>
+          {/* Wordmark */}
+          <div className="flex items-center gap-2">
+            {/* Simple QR mark — no colored blob */}
+            <svg className="w-5 h-5 text-zinc-900 dark:text-zinc-100" viewBox="0 0 20 20" fill="currentColor">
+              <rect x="1" y="1" width="7" height="7" rx="1.5"/>
+              <rect x="12" y="1" width="7" height="7" rx="1.5"/>
+              <rect x="1" y="12" width="7" height="7" rx="1.5"/>
+              <rect x="2.5" y="2.5" width="4" height="4" rx="0.5" fill="white"/>
+              <rect x="13.5" y="2.5" width="4" height="4" rx="0.5" fill="white"/>
+              <rect x="2.5" y="13.5" width="4" height="4" rx="0.5" fill="white"/>
+              <rect x="12" y="12" width="3" height="3" rx="0.5"/>
+              <rect x="17" y="12" width="3" height="3" rx="0.5"/>
+              <rect x="12" y="17" width="3" height="3" rx="0.5"/>
+              <rect x="17" y="17" width="3" height="3" rx="0.5"/>
             </svg>
-          </div>
-
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">
+            <span className="text-[13px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
               QR Designer
             </span>
-            <span className="hidden sm:block text-xs text-zinc-400 dark:text-zinc-500">
-              / free & browser-only
+            <span className="hidden sm:block text-[11px] text-zinc-400 dark:text-zinc-600 font-normal">
+              — browser-only, free
             </span>
           </div>
         </div>
@@ -156,71 +160,67 @@ export default function App() {
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
       </header>
 
-      {/* ── Body: sidebar + preview ─────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden relative">
+      {/* ── Layout ── */}
+      <div className="flex flex-1 overflow-hidden">
 
-        {/* ── Sidebar ──────────────────────────────────────── */}
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div
-            className="lg:hidden fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 z-30 bg-black/20"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
+        {/* ── Sidebar ── */}
         <aside className={`
           fixed lg:static inset-y-0 left-0 z-40 lg:z-auto
-          w-[340px] flex-shrink-0
-          transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          w-80 flex-shrink-0
           flex flex-col
-          bg-white dark:bg-[#111116]
-          border-r border-zinc-200/80 dark:border-white/[0.06]
-          overflow-hidden
-          mt-12 lg:mt-0
+          bg-white dark:bg-[#141414]
+          border-r border-zinc-200 dark:border-zinc-800
+          mt-11 lg:mt-0
+          transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
-          <div className="flex-1 overflow-y-auto overscroll-contain">
-            {/* ── QR Type ────────────────────────── */}
-            <div className="px-4 pt-5 pb-4 border-b border-zinc-100 dark:border-white/[0.05]">
-              <p className="section-label mb-3">Type</p>
+          <div className="flex-1 overflow-y-auto">
+
+            {/* QR Type */}
+            <div className="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+              <p className="section-label mb-2.5">QR type</p>
               <QRTypeSelector selected={qrType} onChange={handleTypeChange} />
             </div>
 
-            {/* ── Form ───────────────────────────── */}
-            <div className="px-4 pt-4 pb-4 border-b border-zinc-100 dark:border-white/[0.05]">
-              <p className="section-label mb-3">{formTitle}</p>
-              <div className="fade-up" key={qrType}>
-                {qrType === 'url'   && <URLForm   values={(formData as { type:'url';   values:URLFormValues   }).values} errors={errors} onChange={v => handleFormChange(v)} />}
-                {qrType === 'text'  && <TextForm  values={(formData as { type:'text';  values:TextFormValues  }).values} errors={errors} onChange={v => handleFormChange(v)} />}
-                {qrType === 'email' && <EmailForm values={(formData as { type:'email'; values:EmailFormValues }).values} errors={errors} onChange={v => handleFormChange(v)} />}
-                {qrType === 'phone' && <PhoneForm values={(formData as { type:'phone'; values:PhoneFormValues }).values} errors={errors} onChange={v => handleFormChange(v)} />}
-                {qrType === 'wifi'  && <WiFiForm  values={(formData as { type:'wifi';  values:WiFiFormValues  }).values} errors={errors} onChange={v => handleFormChange(v)} />}
+            {/* Content form */}
+            <div className="px-4 pt-4 pb-4 border-b border-zinc-100 dark:border-zinc-800/60">
+              <p className="section-label mb-2.5">{FORM_TITLES[qrType]}</p>
+              <div key={qrType} className="fade-up">
+                {qrType === 'url'   && <URLForm   values={(formData as {type:'url';   values:URLFormValues  }).values} errors={errors} onChange={v => handleFormChange(v)} />}
+                {qrType === 'text'  && <TextForm  values={(formData as {type:'text';  values:TextFormValues }).values} errors={errors} onChange={v => handleFormChange(v)} />}
+                {qrType === 'email' && <EmailForm values={(formData as {type:'email'; values:EmailFormValues}).values} errors={errors} onChange={v => handleFormChange(v)} />}
+                {qrType === 'phone' && <PhoneForm values={(formData as {type:'phone'; values:PhoneFormValues}).values} errors={errors} onChange={v => handleFormChange(v)} />}
+                {qrType === 'wifi'  && <WiFiForm  values={(formData as {type:'wifi';  values:WiFiFormValues }).values} errors={errors} onChange={v => handleFormChange(v)} />}
               </div>
             </div>
 
-            {/* ── Tabs: Customize / Presets / History ──────── */}
+            {/* Customize / Presets / History tabs */}
             <div className="px-4 pt-4 pb-6">
-              {/* Pill switcher */}
-              <div className="pill-group mb-4">
+              {/* Underline tab navigation */}
+              <nav className="tab-group mb-4">
                 {TABS.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActivePanel(tab.id)}
-                    className={`tab-pill ${
-                      activePanel === tab.id
-                        ? 'bg-white dark:bg-white/[0.08] text-zinc-900 dark:text-zinc-100 shadow-sm shadow-black/5'
-                        : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                    }`}
+                    className={`tab-item ${activePanel === tab.id ? 'tab-item-active' : ''}`}
                   >
                     {tab.label}
-                    {tab.id === 'recent' && recent.length > 0 && (
-                      <span className="ml-1.5 text-[9px] font-bold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-full px-1.5 py-0.5">
-                        {recent.length}
+                    {tab.id === 'history' && recent.length > 0 && (
+                      <span className="ml-1.5 text-[10px] text-zinc-400 dark:text-zinc-500">
+                        ({recent.length})
                       </span>
                     )}
                   </button>
                 ))}
-              </div>
+              </nav>
 
               {activePanel === 'customize' && (
                 <CustomizationPanel options={options} onChange={setOptions} />
@@ -228,7 +228,7 @@ export default function App() {
               {activePanel === 'presets' && (
                 <PresetPanel options={options} onApply={handlePreset} />
               )}
-              {activePanel === 'recent' && (
+              {activePanel === 'history' && (
                 <RecentQRList
                   entries={recent}
                   onRestore={handleRestoreRecent}
@@ -240,18 +240,17 @@ export default function App() {
           </div>
         </aside>
 
-        {/* ── Preview pane ─────────────────────────────────── */}
-        <main className="flex-1 flex flex-col items-center justify-center overflow-y-auto p-6 lg:p-10 relative">
-          {/* Subtle radial glow */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="
-              w-[500px] h-[500px] rounded-full
-              bg-indigo-500/5 dark:bg-indigo-500/[0.04]
-              blur-3xl
-            " />
-          </div>
-
-          <div className="relative z-10 flex flex-col items-center gap-6 w-full max-w-sm">
+        {/* ── Preview pane ── */}
+        {/*
+          No glow, no blur, no glassmorphism.
+          Just a neutral background with the QR as the focal point.
+        */}
+        <main className="
+          flex-1 flex flex-col items-center justify-center
+          overflow-y-auto p-8
+          bg-zinc-100 dark:bg-[#0d0d0d]
+        ">
+          <div className="flex flex-col items-center gap-5 w-full max-w-xs">
             <QRPreview
               content={content}
               options={options}
@@ -259,30 +258,22 @@ export default function App() {
               onGenerated={handleGenerated}
             />
 
-            {/* Scan warning inline */}
+            {/* Scan reliability warning */}
             {scanWarning && content && (
               <ScanWarning message={scanWarning} />
             )}
 
-            {/* Specs strip */}
+            {/* Minimal specs row — no card, no backdrop-blur */}
             {content && (
-              <div className="
-                fade-up w-full
-                flex items-center gap-3 flex-wrap justify-center
-                px-4 py-2.5 rounded-xl
-                bg-white/60 dark:bg-white/[0.03]
-                border border-zinc-200/60 dark:border-white/[0.05]
-                backdrop-blur-sm
-              ">
+              <div className="fade-up w-full flex items-center justify-center gap-4 pt-1">
                 {[
-                  { label: 'Size',    value: `${options.size}px` },
-                  { label: 'ECL',     value: `Level ${options.ecLevel}` },
-                  { label: 'Margin',  value: `${options.margin}q` },
-                  { label: 'Length',  value: `${content.length}c` },
+                  { label: 'Size',   value: `${options.size}px` },
+                  { label: 'ECL',    value: `Level ${options.ecLevel}` },
+                  { label: 'Margin', value: `${options.margin}` },
                 ].map(spec => (
-                  <div key={spec.label} className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-zinc-400 dark:text-zinc-600">{spec.label}</span>
-                    <span className="text-[10px] font-mono font-semibold text-zinc-600 dark:text-zinc-400">{spec.value}</span>
+                  <div key={spec.label} className="text-center">
+                    <div className="text-[10px] text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{spec.label}</div>
+                    <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 mt-0.5">{spec.value}</div>
                   </div>
                 ))}
               </div>

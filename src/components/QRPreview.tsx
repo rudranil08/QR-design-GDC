@@ -4,21 +4,22 @@ import { useQRCode, generateSVG } from '../hooks/useQRCode'
 import { downloadCanvasAsPNG, downloadSVG, copyCanvasToClipboard, buildFilename } from '../utils/download'
 
 interface Props {
-  content: string
-  options: QROptions
-  isValid: boolean
+  content:     string
+  options:     QROptions
+  isValid:     boolean
   onGenerated?: (dataURL: string) => void
 }
 
 export function QRPreview({ content, options, isValid, onGenerated }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [copied, setCopied]       = useState(false)
-  const [svgBusy, setSvgBusy]    = useState(false)
+  const [copied,  setCopied]  = useState(false)
+  const [svgBusy, setSvgBusy] = useState(false)
 
   useQRCode({ content, options, canvasRef, onGenerated })
 
   const downloadPNG = useCallback(() => {
-    if (canvasRef.current) downloadCanvasAsPNG(canvasRef.current, buildFilename(content, 'png'))
+    if (canvasRef.current)
+      downloadCanvasAsPNG(canvasRef.current, buildFilename(content, 'png'))
   }, [content])
 
   const downloadSVGFile = useCallback(async () => {
@@ -38,24 +39,26 @@ export function QRPreview({ content, options, isValid, onGenerated }: Props) {
 
   const isEmpty = !content || !isValid
 
+  // Display size: cap at 280px so it fits the pane cleanly
+  const displaySize = Math.min(options.size, 280)
+
   return (
-    <div className="flex flex-col items-center gap-5 w-full">
-      {/* ── Canvas card ── */}
-      <div className={`
-        relative rounded-2xl overflow-hidden transition-all duration-500
-        ${isEmpty
-          ? 'border-2 border-dashed border-zinc-200 dark:border-white/[0.08]'
-          : 'shadow-2xl shadow-black/10 dark:shadow-black/40'
-        }
-      `}
-        style={{ width: Math.min(options.size, 320), height: Math.min(options.size, 320) }}
+    <div className="flex flex-col items-center gap-4 w-full">
+
+      {/* QR canvas — no decorative shadow, no rounded-2xl, just a clean border */}
+      <div
+        className={`
+          relative overflow-hidden bg-white dark:bg-zinc-900
+          border border-zinc-200 dark:border-zinc-800
+          ${isEmpty ? 'border-dashed' : ''}
+        `}
+        style={{ width: displaySize, height: displaySize, borderRadius: 8 }}
       >
-        {/* Checkerboard for transparent */}
+        {/* Checkerboard: visible only when bg is transparent */}
         {options.bgTransparent && !isEmpty && (
           <div className="absolute inset-0 checkerboard" />
         )}
 
-        {/* Canvas */}
         <canvas
           ref={canvasRef}
           width={options.size}
@@ -69,52 +72,59 @@ export function QRPreview({ content, options, isValid, onGenerated }: Props) {
 
         {/* Empty state */}
         {isEmpty && (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-zinc-300 dark:text-zinc-700">
-            <svg className="w-14 h-14" viewBox="0 0 56 56" fill="none">
-              <rect x="6" y="6" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-              <rect x="34" y="6" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-              <rect x="6" y="34" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-              <rect x="10" y="10" width="8" height="8" rx="1" fill="currentColor" opacity="0.3"/>
-              <rect x="38" y="10" width="8" height="8" rx="1" fill="currentColor" opacity="0.3"/>
-              <rect x="10" y="38" width="8" height="8" rx="1" fill="currentColor" opacity="0.3"/>
-              <rect x="34" y="34" width="6" height="6" rx="1" fill="currentColor" opacity="0.2"/>
-              <rect x="44" y="34" width="6" height="6" rx="1" fill="currentColor" opacity="0.2"/>
-              <rect x="34" y="44" width="6" height="6" rx="1" fill="currentColor" opacity="0.2"/>
-              <rect x="44" y="44" width="6" height="6" rx="1" fill="currentColor" opacity="0.2"/>
+          <div className="
+            w-full h-full flex flex-col items-center justify-center gap-3
+            text-zinc-300 dark:text-zinc-700
+          ">
+            {/* QR outline illustration — subtle, monochrome */}
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <rect x="4" y="4" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.25"/>
+              <rect x="30" y="4" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.25"/>
+              <rect x="4" y="30" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.25"/>
+              <rect x="7" y="7" width="8" height="8" rx="1" fill="currentColor" opacity="0.25"/>
+              <rect x="33" y="7" width="8" height="8" rx="1" fill="currentColor" opacity="0.25"/>
+              <rect x="7" y="33" width="8" height="8" rx="1" fill="currentColor" opacity="0.25"/>
+              <rect x="30" y="30" width="5" height="5" rx="1" fill="currentColor" opacity="0.2"/>
+              <rect x="39" y="30" width="5" height="5" rx="1" fill="currentColor" opacity="0.2"/>
+              <rect x="30" y="39" width="5" height="5" rx="1" fill="currentColor" opacity="0.2"/>
+              <rect x="39" y="39" width="5" height="5" rx="1" fill="currentColor" opacity="0.2"/>
             </svg>
-            <p className="text-xs font-medium text-center text-zinc-400 dark:text-zinc-600 px-6 leading-relaxed">
-              Fill in the form on the left to generate your QR code
+            <p className="text-xs text-zinc-400 dark:text-zinc-600 text-center px-6 leading-5">
+              Enter content on the left to generate your QR code
             </p>
           </div>
         )}
       </div>
 
-      {/* ── Action row ── */}
+      {/* Action buttons — appear only when QR is generated */}
       {!isEmpty && (
-        <div className="flex items-center gap-2 scale-in">
-          <button onClick={downloadPNG} className="btn-primary text-xs px-4 py-2">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M8 2v8M5 7l3 3 3-3M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" strokeLinecap="round" strokeLinejoin="round"/>
+        <div className="flex items-center gap-2">
+          {/* PNG is the primary action */}
+          <button onClick={downloadPNG} className="btn-accent text-[13px] font-medium">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 1v7M4.5 5.5L7 8l2.5-2.5M1.5 10.5v1A1.5 1.5 0 003 13h8a1.5 1.5 0 001.5-1.5v-1"/>
             </svg>
-            PNG
+            Download PNG
           </button>
 
-          <button onClick={downloadSVGFile} disabled={svgBusy} className="btn-secondary text-xs px-4 py-2">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M8 2v8M5 7l3 3 3-3M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {svgBusy ? '…' : 'SVG'}
+          {/* SVG and Copy are secondary */}
+          <button onClick={downloadSVGFile} disabled={svgBusy} className="btn-secondary text-[13px]">
+            {svgBusy ? 'Generating…' : 'SVG'}
           </button>
 
-          <button onClick={handleCopy} className="btn-secondary text-xs px-3 py-2">
+          <button
+            onClick={handleCopy}
+            className="btn-icon"
+            title="Copy to clipboard"
+          >
             {copied ? (
-              <svg className="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2.5 8L6 11.5l7.5-7" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 7l3.5 3.5L12 3"/>
               </svg>
             ) : (
-              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="5.5" y="5.5" width="8" height="9" rx="1.5"/>
-                <path d="M10.5 5.5V3.5A1 1 0 009.5 2.5h-7A1 1 0 001.5 3.5v9A1 1 0 002.5 13.5h3" strokeLinecap="round"/>
+              <svg className="w-4 h-4" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round">
+                <rect x="4.5" y="4.5" width="8" height="8.5" rx="1.25"/>
+                <path d="M9.5 4.5V2.75A1.25 1.25 0 008.25 1.5h-6A1.25 1.25 0 001 2.75v8.5A1.25 1.25 0 002.25 12.5H4.5"/>
               </svg>
             )}
           </button>
