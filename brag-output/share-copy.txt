@@ -1,3 +1,0 @@
-Create. Customize. Scan.
-
-Built QR Designer — a fast, 100% browser-based QR code generator with real-time matrix generation, Wi-Fi credentials auto-connect, curated theme presets, and crisp vector SVG/PNG downloads. Zero backend, zero tracking, zero subscriptions.
