@@ -47,9 +47,10 @@ export function URLForm({ values, errors, onChange }: { values: URLFormValues; e
 
 // ─── TEXT ─────────────────────────────────────────────────
 export function TextForm({ values, errors, onChange }: { values: TextFormValues; errors: FormErrors; onChange: (v: TextFormValues) => void }) {
-  const remaining = 2000 - values.text.length
+  const MAX_TEXT = 2953
+  const remaining = MAX_TEXT - values.text.length
   return (
-    <Field label="Content" error={errors.text} hint={`${remaining} characters remaining`}>
+    <Field label="Content" error={errors.text} hint={`${remaining} characters remaining (max ${MAX_TEXT})`}>
       <textarea
         className={`field-input min-h-[96px] resize-none ${errors.text ? 'field-input-error' : ''}`}
         placeholder="Any text you want to encode…"
@@ -75,9 +76,13 @@ export function EmailForm({ values, errors, onChange }: { values: EmailFormValue
         <input type="text" className={`field-input ${errors.subject ? 'field-input-error' : ''}`}
           placeholder="Optional subject" value={values.subject} onChange={u('subject')} />
       </Field>
-      <Field label="Body">
-        <textarea className="field-input resize-none min-h-[72px]"
-          placeholder="Optional message" value={values.body} onChange={u('body')} />
+      <Field label="Body" error={errors.body}>
+        <textarea
+          className={`field-input resize-none min-h-[72px] ${errors.body ? 'field-input-error' : ''}`}
+          placeholder="Optional message"
+          value={values.body}
+          onChange={u('body')}
+        />
       </Field>
     </div>
   )
@@ -102,6 +107,7 @@ const ENCRYPTIONS: { value: WifiEncryption; label: string }[] = [
 ]
 
 export function WiFiForm({ values, errors, onChange }: { values: WiFiFormValues; errors: FormErrors; onChange: (v: WiFiFormValues) => void }) {
+  const [showPwd, setShowPwd] = React.useState(false)
   const u = <K extends keyof WiFiFormValues>(k: K, v: WiFiFormValues[K]) => onChange({ ...values, [k]: v })
   return (
     <div className="space-y-3">
@@ -119,30 +125,57 @@ export function WiFiForm({ values, errors, onChange }: { values: WiFiFormValues;
       </Field>
 
       {values.encryption !== 'nopass' && (
-        <Field label="Password">
-          <input type="text" className="field-input" placeholder="Network password"
-            value={values.password} onChange={e => u('password', e.target.value)} />
+        <Field label="Password" error={errors.password}>
+          <div className="relative">
+            <input
+              type={showPwd ? 'text' : 'password'}
+              className="field-input pr-9"
+              placeholder="Network password"
+              value={values.password}
+              onChange={e => u('password', e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPwd(s => !s)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+              aria-label={showPwd ? 'Hide password' : 'Show password'}
+            >
+              {showPwd ? (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round">
+                  <path d="M1 7s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4z"/><circle cx="7" cy="7" r="1.5"/>
+                  <path d="M2 2l10 10" strokeWidth="1.5"/>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round">
+                  <path d="M1 7s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4z"/><circle cx="7" cy="7" r="1.5"/>
+                </svg>
+              )}
+            </button>
+          </div>
           <p className="text-[11px] text-amber-500/80 dark:text-amber-400/70 mt-1">
             Password is encoded in the QR — share with care.
           </p>
         </Field>
       )}
 
-      <label className="flex items-center gap-2.5 py-1 cursor-pointer group">
+      {/* Use div instead of label to prevent double-fire: clicking a <label> that
+          wraps a <button> triggers both the label's default activation AND the
+          button's own click event, toggling twice and snapping back to original state. */}
+      <div className="flex items-center gap-2.5 py-1 cursor-pointer group" onClick={() => u('hidden', !values.hidden)}>
         <button
           type="button"
           role="switch"
           aria-checked={values.hidden}
-          onClick={() => u('hidden', !values.hidden)}
+          onClick={e => { e.stopPropagation(); u('hidden', !values.hidden) }}
           className="toggle"
         >
           <div className={`toggle-track ${values.hidden ? 'toggle-track-on' : ''}`} />
           <div className={`toggle-thumb ${values.hidden ? 'toggle-thumb-on' : ''}`} />
         </button>
-        <span className="text-sm text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 transition-colors">
+        <span className="text-sm text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 transition-colors select-none">
           Hidden network
         </span>
-      </label>
+      </div>
     </div>
   )
 }

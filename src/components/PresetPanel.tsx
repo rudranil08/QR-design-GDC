@@ -8,7 +8,7 @@ interface Props {
 
 export function PresetPanel({ options, onApply }: Props) {
   const isActive = (p: Preset) =>
-    p.fgColor === options.fgColor && p.bgColor === options.bgColor
+    !options.bgTransparent && p.fgColor === options.fgColor && p.bgColor === options.bgColor
 
   return (
     <div>
@@ -53,9 +53,9 @@ export function PresetPanel({ options, onApply }: Props) {
                 {preset.name}
               </span>
 
-              {/* ECL badge — useful info, not decoration */}
-              <span className="ml-auto text-[10px] text-zinc-400 dark:text-zinc-600 font-mono">
-                ECL {preset.ecLevel}
+              {/* Recovery badge — useful info, plain English */}
+              <span className="ml-auto text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
+                {preset.ecLevel === 'H' ? '30% recovery' : preset.ecLevel === 'Q' ? '25% recovery' : preset.ecLevel === 'M' ? '15% recovery' : '7% recovery'}
               </span>
 
               {/* Active checkmark — monochrome only */}

@@ -4,9 +4,15 @@
  */
 function luminance(hex: string): number {
   const clean = hex.replace('#', '')
-  const r = parseInt(clean.slice(0, 2), 16) / 255
-  const g = parseInt(clean.slice(2, 4), 16) / 255
-  const b = parseInt(clean.slice(4, 6), 16) / 255
+  // Guard: only handle full 6-char hex (#rrggbb). Expand 3-char shorthand if needed.
+  const full = clean.length === 3
+    ? clean.split('').map(c => c + c).join('')
+    : clean
+  if (full.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(full)) return 0
+
+  const r = parseInt(full.slice(0, 2), 16) / 255
+  const g = parseInt(full.slice(2, 4), 16) / 255
+  const b = parseInt(full.slice(4, 6), 16) / 255
 
   const linearize = (c: number) =>
     c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
@@ -52,7 +58,7 @@ export function getScanWarning(
   }
 
   if (hasLogo && ecLevel !== 'H') {
-    return 'A logo overlay reduces scannable area. Consider using Error Correction Level H for better reliability.'
+    return 'A logo overlay covers QR modules. Use Maximum (30%) damage recovery for reliable scanning.'
   }
 
   return null

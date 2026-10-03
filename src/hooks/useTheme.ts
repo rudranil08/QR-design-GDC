@@ -3,9 +3,17 @@ import { useState, useEffect } from 'react'
 type Theme = 'light' | 'dark'
 
 function getInitialTheme(): Theme {
-  const stored = localStorage.getItem('qr-designer:theme') as Theme | null
-  if (stored) return stored
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  try {
+    const stored = localStorage.getItem('qr-designer:theme')
+    if (stored === 'dark' || stored === 'light') return stored
+  } catch {
+    // localStorage might be blocked in restricted iframes or incognito
+  }
+
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 'light'
 }
 
 export function useTheme() {
@@ -18,7 +26,11 @@ export function useTheme() {
     } else {
       root.classList.remove('dark')
     }
-    localStorage.setItem('qr-designer:theme', theme)
+    try {
+      localStorage.setItem('qr-designer:theme', theme)
+    } catch {
+      // Storage quota or policy error
+    }
   }, [theme])
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))

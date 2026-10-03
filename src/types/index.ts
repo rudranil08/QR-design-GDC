@@ -77,6 +77,7 @@ export const DEFAULT_QR_OPTIONS: QROptions = {
 export interface Preset {
   id: string
   name: string
+  category?: string
   fgColor: string
   bgColor: string
   ecLevel: ECLevel
@@ -84,12 +85,14 @@ export interface Preset {
 }
 
 export const PRESETS: Preset[] = [
-  { id: 'classic', name: 'Classic',  fgColor: '#000000', bgColor: '#ffffff', ecLevel: 'M', margin: 4 },
-  { id: 'ocean',   name: 'Ocean',    fgColor: '#0369A1', bgColor: '#E0F2FE', ecLevel: 'Q', margin: 4 },
-  { id: 'forest',  name: 'Forest',   fgColor: '#15803D', bgColor: '#DCFCE7', ecLevel: 'M', margin: 4 },
-  { id: 'sunset',  name: 'Sunset',   fgColor: '#C2410C', bgColor: '#FEF3C7', ecLevel: 'M', margin: 4 },
-  { id: 'night',   name: 'Night',    fgColor: '#818CF8', bgColor: '#1E1B4B', ecLevel: 'Q', margin: 4 },
-  { id: 'rose',    name: 'Rose',     fgColor: '#BE185D', bgColor: '#FDF2F8', ecLevel: 'M', margin: 4 },
+  { id: 'classic', name: 'Classic Monochrome', fgColor: '#09090b', bgColor: '#ffffff', ecLevel: 'M', margin: 4 },
+  { id: 'slate',   name: 'Slate & Minimal',    fgColor: '#1e293b', bgColor: '#f8fafc', ecLevel: 'M', margin: 4 },
+  { id: 'midnight',name: 'Midnight OLED',      fgColor: '#f8fafc', bgColor: '#09090b', ecLevel: 'Q', margin: 4 },
+  { id: 'ocean',   name: 'Deep Pacific',       fgColor: '#0369a1', bgColor: '#f0f9ff', ecLevel: 'Q', margin: 4 },
+  { id: 'emerald', name: 'Emerald Mint',       fgColor: '#047857', bgColor: '#ecfdf5', ecLevel: 'M', margin: 4 },
+  { id: 'sunset',  name: 'Warm Sunset',        fgColor: '#c2410c', bgColor: '#fffbeb', ecLevel: 'M', margin: 4 },
+  { id: 'rose',    name: 'Rose Quartz',        fgColor: '#be185d', bgColor: '#fdf2f8', ecLevel: 'M', margin: 4 },
+  { id: 'cobalt',  name: 'Royal Cobalt',       fgColor: '#1d4ed8', bgColor: '#eff6ff', ecLevel: 'Q', margin: 4 },
 ]
 
 // ─── Recent Entry ──────────────────────────────────────────────────────────

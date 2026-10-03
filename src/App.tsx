@@ -20,6 +20,7 @@ import {
   DEFAULT_QR_OPTIONS,
   type QRType,
   type QROptions,
+  type ECLevel,
   type FormValues,
   type URLFormValues,
   type TextFormValues,
@@ -29,6 +30,13 @@ import {
   type Preset,
   type RecentEntry,
 } from './types'
+
+const EC_LABELS: Record<ECLevel, string> = {
+  L: 'Low (7%)',
+  M: 'Medium (15%)',
+  Q: 'High (25%)',
+  H: 'Maximum (30%)',
+}
 
 const DEFAULT_FORMS: Record<QRType, FormValues> = {
   url:   { type: 'url',   values: { url: '' } },
@@ -52,8 +60,25 @@ export default function App() {
   const [qrType,      setQrType]      = useState<QRType>('url')
   const [formData,    setFormData]    = useState<FormValues>(DEFAULT_FORMS.url)
   const [options,     setOptions]     = useState<QROptions>(DEFAULT_QR_OPTIONS)
+  const [zoomLevel,   setZoomLevel]   = useState<number>(1)
   const [activePanel, setActivePanel] = useState<PanelTab>('customize')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Automated quiet zone and resolution per zoom framing
+  const handleZoomChange = useCallback((zoom: number) => {
+    setZoomLevel(zoom)
+    const config: Record<number, { size: number; margin: number }> = {
+      1:    { size: 300, margin: 4 },
+      1.25: { size: 375, margin: 2 },
+      2:    { size: 600, margin: 1 },
+    }
+    const current = config[zoom] || config[1]
+    setOptions(prev => ({
+      ...prev,
+      size: current.size,
+      margin: current.margin,
+    }))
+  }, [])
 
   const errors  = useMemo(() => validate(formData), [formData])
   const isValid = !hasErrors(errors)
@@ -87,6 +112,8 @@ export default function App() {
       ecLevel: preset.ecLevel,
       margin:  preset.margin,
       bgTransparent: false,
+      // Reset logo size to default when applying preset so it starts clean
+      logoSize: prev.logoFile ? prev.logoSize : 25,
     }))
   }, [])
 
@@ -99,6 +126,8 @@ export default function App() {
     setFormData(entry.formData)
     setQrType(entry.formData.type)
     setOptions({ ...entry.options, logoFile: null })
+    const restoredZoom = [1, 1.25, 2].find(z => Math.round(300 * z) === entry.options.size) || 1
+    setZoomLevel(restoredZoom)
     setActivePanel('customize')
     setSidebarOpen(false)
   }, [])
@@ -150,9 +179,6 @@ export default function App() {
             </svg>
             <span className="text-[13px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
               QR Designer
-            </span>
-            <span className="hidden sm:block text-[11px] text-zinc-400 dark:text-zinc-600 font-normal">
-              — browser-only, free
             </span>
           </div>
         </div>
@@ -223,7 +249,12 @@ export default function App() {
               </nav>
 
               {activePanel === 'customize' && (
-                <CustomizationPanel options={options} onChange={setOptions} />
+                <CustomizationPanel
+                  options={options}
+                  onChange={setOptions}
+                  zoomLevel={zoomLevel}
+                  onZoomChange={handleZoomChange}
+                />
               )}
               {activePanel === 'presets' && (
                 <PresetPanel options={options} onApply={handlePreset} />
@@ -247,29 +278,33 @@ export default function App() {
         */}
         <main className="
           flex-1 flex flex-col items-center justify-center
-          overflow-y-auto p-8
+          overflow-y-auto p-4 sm:p-8
           bg-zinc-100 dark:bg-[#0d0d0d]
         ">
-          <div className="flex flex-col items-center gap-5 w-full max-w-xs">
+          <div className="flex flex-col items-center gap-5 w-full max-w-2xl my-auto">
             <QRPreview
               content={content}
               options={options}
               isValid={isValid}
+              zoomLevel={zoomLevel}
+              onZoomChange={handleZoomChange}
               onGenerated={handleGenerated}
             />
 
             {/* Scan reliability warning */}
             {scanWarning && content && (
-              <ScanWarning message={scanWarning} />
+              <div className="w-full max-w-sm">
+                <ScanWarning message={scanWarning} />
+              </div>
             )}
 
             {/* Minimal specs row — no card, no backdrop-blur */}
             {content && (
-              <div className="fade-up w-full flex items-center justify-center gap-4 pt-1">
+              <div className="fade-up w-full flex items-center justify-center gap-6 pt-1">
                 {[
-                  { label: 'Size',   value: `${options.size}px` },
-                  { label: 'ECL',    value: `Level ${options.ecLevel}` },
-                  { label: 'Margin', value: `${options.margin}` },
+                  { label: 'Size',     value: `${options.size}px (${zoomLevel}×)` },
+                  { label: 'Recovery', value: EC_LABELS[options.ecLevel] },
+                  { label: 'Margin',   value: `${options.margin} mod` },
                 ].map(spec => (
                   <div key={spec.label} className="text-center">
                     <div className="text-[10px] text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{spec.label}</div>

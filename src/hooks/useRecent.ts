@@ -4,11 +4,28 @@ import type { RecentEntry, FormValues, QROptions } from '../types'
 const STORAGE_KEY = 'qr-designer:recent'
 const MAX_ENTRIES = 10
 
+function isValidRecentEntry(obj: unknown): obj is RecentEntry {
+  if (!obj || typeof obj !== 'object') return false
+  const entry = obj as Partial<RecentEntry>
+  return (
+    typeof entry.id === 'string' &&
+    typeof entry.createdAt === 'number' &&
+    typeof entry.content === 'string' &&
+    typeof entry.thumbnail === 'string' &&
+    typeof entry.formData === 'object' &&
+    entry.formData !== null &&
+    typeof entry.options === 'object' &&
+    entry.options !== null
+  )
+}
+
 function loadRecent(): RecentEntry[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
-    return JSON.parse(raw) as RecentEntry[]
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(isValidRecentEntry).slice(0, MAX_ENTRIES)
   } catch {
     return []
   }
@@ -18,7 +35,7 @@ function saveRecent(entries: RecentEntry[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
   } catch {
-    // localStorage might be full
+    // localStorage might be full or blocked by browser privacy settings
   }
 }
 

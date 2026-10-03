@@ -64,11 +64,15 @@ export function RecentQRList({ entries, onRestore, onRemove, onClear }: Props) {
         {entries.map(entry => (
           <div
             key={entry.id}
+            role="button"
+            tabIndex={0}
             onClick={() => onRestore(entry)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRestore(entry) } }}
             className="
               group flex items-center gap-3 px-2.5 py-2.5
               hover:bg-zinc-50 dark:hover:bg-zinc-800/60
               transition-colors duration-100 cursor-pointer
+              focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-400 focus-visible:rounded
             "
             style={{ borderRadius: 6 }}
           >
@@ -105,14 +109,16 @@ export function RecentQRList({ entries, onRestore, onRemove, onClear }: Props) {
               </p>
             </div>
 
-            {/* Remove — hidden until hover */}
+            {/* Remove — hidden until hover, accessible via keyboard */}
             <button
               onClick={e => { e.stopPropagation(); onRemove(entry.id) }}
+              onKeyDown={e => e.stopPropagation()}
               className="
-                opacity-0 group-hover:opacity-100 btn-icon
+                opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 btn-icon
                 transition-opacity duration-100
               "
               title="Remove"
+              aria-label="Remove from history"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="M2 2l8 8M10 2L2 10"/>

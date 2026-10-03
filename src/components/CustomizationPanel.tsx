@@ -4,13 +4,23 @@ import type { QROptions, ECLevel } from '../types'
 interface Props {
   options: QROptions
   onChange: (options: QROptions) => void
+  zoomLevel: number
+  onZoomChange: (z: number) => void
 }
 
-const EC_LEVELS: { value: ECLevel; desc: string }[] = [
-  { value: 'L', desc: '7%'  },
-  { value: 'M', desc: '15%' },
-  { value: 'Q', desc: '25%' },
-  { value: 'H', desc: '30%' },
+// Human-readable error correction labels
+const EC_LEVELS: { value: ECLevel; label: string; desc: string }[] = [
+  { value: 'L', label: 'Low',    desc: 'Smallest — best for clean, unobstructed prints' },
+  { value: 'M', label: 'Medium', desc: 'Balanced — good for most uses (recommended)' },
+  { value: 'Q', label: 'High',   desc: 'Better — survives minor damage or dirt' },
+  { value: 'H', label: 'Max',    desc: 'Maximum — required when adding a logo overlay' },
+]
+
+// Zoom steps: 1x, 1.25x, 2x with automated quiet zone framing
+const ZOOM_STEPS: { value: number; label: string }[] = [
+  { value: 1,    label: '1×'    },
+  { value: 1.25, label: '1.25×' },
+  { value: 2,    label: '2×'    },
 ]
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -72,7 +82,7 @@ function ColorSwatch({
   )
 }
 
-export function CustomizationPanel({ options, onChange }: Props) {
+export function CustomizationPanel({ options, onChange, zoomLevel, onZoomChange }: Props) {
   const logoRef = useRef<HTMLInputElement>(null)
   const set = <K extends keyof QROptions>(k: K, v: QROptions[K]) =>
     onChange({ ...options, [k]: v })
@@ -80,25 +90,41 @@ export function CustomizationPanel({ options, onChange }: Props) {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
     onChange({ ...options, logoFile: file, ecLevel: file ? 'H' : options.ecLevel })
+    e.target.value = ''
   }
 
   return (
     <div className="space-y-5">
 
-      {/* Size */}
+      {/* Preview zoom */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <p className="section-label">Output size</p>
-          <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-500">{options.size}px</span>
+        <p className="section-label mb-1.5">Preview zoom</p>
+        <div className="flex border border-zinc-200 dark:border-zinc-700 overflow-hidden" style={{ borderRadius: 6 }}>
+          {ZOOM_STEPS.map((step, i) => {
+            const isActive = zoomLevel === step.value
+            return (
+              <button
+                key={step.value}
+                onClick={() => onZoomChange(step.value)}
+                className={`
+                  flex-1 py-1.5 text-[11px] font-medium transition-colors duration-100
+                  ${i > 0 ? 'border-l border-zinc-200 dark:border-zinc-700' : ''}
+                  ${isActive
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                    : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                  }
+                `}
+              >
+                {step.label}
+              </button>
+            )
+          })}
         </div>
-        <input
-          type="range" min={128} max={1024} step={8}
-          value={options.size}
-          onChange={e => set('size', Number(e.target.value))}
-        />
-        <div className="flex justify-between text-[10px] text-zinc-400 dark:text-zinc-600 mt-1">
-          <span>128</span><span>1024</span>
-        </div>
+        <p className="text-[11px] text-zinc-400 dark:text-zinc-600 mt-1">
+          {zoomLevel === 1 && '1× Standard: 4-module quiet zone, classic framing.'}
+          {zoomLevel === 1.25 && '1.25× Focused: 2-module quiet zone, tighter borders.'}
+          {zoomLevel === 2 && '2× Maximum: 1-module quiet zone, bold edge-to-edge frame.'}
+        </p>
       </div>
 
       {/* Quiet zone */}
@@ -138,34 +164,44 @@ export function CustomizationPanel({ options, onChange }: Props) {
         </div>
       </div>
 
-      {/* Error correction */}
+      {/* Error correction — human-readable */}
       <div>
-        <p className="section-label mb-1.5">Error correction</p>
-        {/*
-          Simple segmented control — not cards, not pills.
-          Selected state: solid zinc fill. Unselected: outlined.
-        */}
-        <div className="flex border border-zinc-200 dark:border-zinc-700 overflow-hidden" style={{ borderRadius: 6 }}>
-          {EC_LEVELS.map((level, i) => {
+        <p className="section-label mb-1.5">Damage resistance</p>
+        <div className="flex flex-col gap-1">
+          {EC_LEVELS.map((level) => {
             const isActive = options.ecLevel === level.value
             return (
               <button
                 key={level.value}
                 onClick={() => set('ecLevel', level.value)}
                 className={`
-                  flex-1 py-1.5 flex flex-col items-center
-                  text-[11px] transition-colors duration-100
-                  ${i > 0 ? 'border-l border-zinc-200 dark:border-zinc-700' : ''}
+                  w-full flex items-center gap-3 px-3 py-2 text-left
+                  border transition-colors duration-100
                   ${isActive
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                    : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                    ? 'border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800/60'
+                    : 'border-transparent hover:border-zinc-200 dark:hover:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 bg-transparent'
                   }
                 `}
+                style={{ borderRadius: 6 }}
               >
-                <span className="font-semibold">{level.value}</span>
-                <span className={`text-[9px] ${isActive ? 'opacity-60' : 'text-zinc-400 dark:text-zinc-600'}`}>
-                  {level.desc}
+                {/* Active indicator dot */}
+                <span className={`
+                  w-1.5 h-1.5 rounded-full flex-shrink-0
+                  ${isActive ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-zinc-300 dark:bg-zinc-700'}
+                `} />
+                <span className="flex-1 min-w-0">
+                  <span className={`text-[13px] font-medium ${isActive ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                    {level.label}
+                  </span>
+                  <span className="block text-[11px] text-zinc-400 dark:text-zinc-600 mt-0.5 leading-snug">
+                    {level.desc}
+                  </span>
                 </span>
+                {isActive && (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 dark:text-zinc-400 flex-shrink-0">
+                    <path d="M2 6l3 3 5-5"/>
+                  </svg>
+                )}
               </button>
             )
           })}
@@ -189,7 +225,10 @@ export function CustomizationPanel({ options, onChange }: Props) {
           {options.logoFile && (
             <button
               type="button"
-              onClick={() => set('logoFile', null)}
+              onClick={() => {
+                if (logoRef.current) logoRef.current.value = ''
+                set('logoFile', null)
+              }}
               className="btn-ghost text-xs text-red-500 dark:text-red-400 h-8"
             >
               Remove
@@ -209,7 +248,7 @@ export function CustomizationPanel({ options, onChange }: Props) {
               onChange={e => set('logoSize', Number(e.target.value))}
             />
             <p className="text-[11px] text-amber-600 dark:text-amber-500 mt-1.5">
-              Error correction auto-set to H when a logo is present.
+              Damage resistance auto-set to Max when a logo is present.
             </p>
           </div>
         )}

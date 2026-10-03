@@ -2,15 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QR Designer — Generate & Customize QR Codes</title>
-    <meta name="description" content="Free online QR code generator and designer. Create custom QR codes for URLs, text, email, phone, and Wi-Fi. Customize colors, size, and download as PNG or SVG." />
+    <meta name="description" content="Free online QR code generator and designer. Create custom QR codes for URLs, text, email, phone, and Wi-Fi. 100% in-browser, private, and secure." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <noscript>
+      <div style="padding: 2rem; text-align: center; font-family: sans-serif;">
+        <h2>JavaScript Required</h2>
+        <p>QR Designer runs 100% client-side in your browser for privacy. Please enable JavaScript to use the app.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
