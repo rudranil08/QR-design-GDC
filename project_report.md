@@ -1,13 +1,13 @@
 # QR Designer — Master Project Report & Technical Evaluation Dossier
 
 > **Live Local Application:** `http://localhost:5173/`  
-> **Repository:** `/Users/rudranil/Desktop/GDC/qr-designer`  
+> **Repository:** `/Users/rudranil/Desktop/GDC/qr-designer`
+> **Vercel link:**'https://qr-design-gdc.vercel.app/'
 > **Production Build:** ✅ Passing (`tsc && vite build` — 0 errors, 209.02 kB bundle)  
 > **Security Audit:** ✅ Hardened (CSP Level 3, HSTS 2-Year, Zero-Telemetry, OWASP client-side compliant)
 
 ---
 
-## 1. Executive Summary & Pitch to the Judges
 
 ### The Problem
 Most QR code generators on the internet are predatory:
@@ -255,31 +255,3 @@ Below is the complete ledger of all 22 bugs and vulnerabilities discovered, diag
 
 ---
 
-## 6. Hackathon Presentation Guide for the Judges
-
-When presenting QR Designer to the judges, follow this concise 2-minute structure:
-
-### 1. The Hook (0:00 – 0:30)
-> *"Judges, almost every 'free' QR generator online is a trap. You generate a code for your restaurant or event, print it, and two weeks later the link is held hostage behind a monthly subscription. Or worse, your customer data and Wi-Fi credentials are logged on third-party tracking servers.*  
-> *We built **QR Designer**: an open-source, 100% in-browser, privacy-first QR suite with zero backend, zero telemetry, and zero subscriptions."*
-
-### 2. Live Demo Walkthrough (0:30 – 1:15)
-1. **Instant URL Generation:** Type `https://github.com` — show the live preview generating instantaneously with zero network latency.
-2. **Wi-Fi Generator & Privacy:** Switch to Wi-Fi. Type an SSID and password. Toggle the password visibility. Download the PNG — point out that the filename is `qr-wifi-MySSID.png` with **zero password leakage**.
-3. **Inspector Zoom:** Switch to $5\times$ zoom. Demonstrate how the canvas scales up to $1400\text{px}$ high-resolution with smooth 2D panning inside the viewport, completely clipping-free.
-4. **Designer Themes & Plain-English Error Recovery:** Apply the "Midnight OLED" or "Royal Cobalt" preset. Show how error correction levels are explained in plain English ("Maximum — 30% recovery") rather than cryptic letters.
-5. **Logo Overlay & Vector SVG Export:** Drop in a company logo. Note how error correction automatically elevates to Max. Download the SVG and show that the vector export preserves the logo cleanly.
-
-### 3. Engineering Rigor & Security (1:15 – 1:45)
-> *"Under the hood, we treat the browser as a secure runtime. We enforce Content Security Policy Level 3, HSTS 2-year preload, control character sanitization to prevent terminal injection, CRLF injection protection, and schema validation on storage hydration to stop prototype pollution. History uses optimized 64-pixel thumbnails taking less than 10 KB of local storage."*
-
-### 4. Anticipated Judge Questions & Winning Answers
-
-- **Q: "Why not use dynamic redirect QR codes so users can change the URL later?"**  
-  *A: "Dynamic QR codes introduce a single point of failure and privacy risk: if the redirect service goes down, is acquired, or shuts down, every printed QR code dies forever. QR Designer targets direct static encoding for permanent assets (Wi-Fi badges, business cards, printed packaging, signage) where longevity and privacy are non-negotiable."*
-
-- **Q: "How do you achieve crispness on Retina displays?"**  
-  *A: "Standard web canvases render at CSS pixel dimensions which look blurry on high-DPI screens. We implemented an offscreen supersampling pipeline that calculates $\max(\text{window.devicePixelRatio}, 2) \times \text{size}$, rendering at double or triple density and downscaling via CSS, ensuring razor-sharp edges."*
-
-- **Q: "What prevents malicious URL schemes like `javascript:` from executing?"**  
-  *A: "We have defense-in-depth: the form validator enforces RFC 3986 compliance, the content builder strips dangerous schemes, and our HTTP headers enforce a strict Content Security Policy denying inline script execution."*
